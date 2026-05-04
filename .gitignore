@@ -1,0 +1,9 @@
+node_modules
+.env
+dist
+build
+.vscode
+
+# explicitly ignore nested node_modules
+verifyai-backend/node_modules
+verifyai-frontend/node_modules
