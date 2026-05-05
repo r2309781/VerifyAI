@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 const { GoogleGenAI } = require("@google/genai");
 const pool = require("./db");
 require("dotenv").config();
@@ -12,6 +15,27 @@ app.use(express.json());
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
+});
+
+// FILE UPLOAD CONFIG
+const upload = multer({
+  dest: "uploads/",
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      "application/pdf",
+      "text/plain",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only PDF, TXT, and DOCX files are allowed"));
+    }
+  },
 });
 
 // Test route
@@ -229,6 +253,109 @@ Reasoning: ...
       message: "Fact-check request failed",
     });
   }
+});
+
+// FACT CHECK UPLOADED FILE
+app.post("/api/fact-check-file", upload.single("file"), async (req, res) => {
+  let uploadedFilePath;
+
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        status: "error",
+        message: "File is required",
+      });
+    }
+
+    uploadedFilePath = req.file.path;
+
+    const geminiFile = await ai.files.upload({
+      file: uploadedFilePath,
+      config: {
+        mimeType: req.file.mimetype,
+        displayName: req.file.originalname,
+      },
+    });
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `
+You are VerifyAI Assistant.
+
+Analyze the uploaded document.
+
+Your task:
+- identify the main claims in the file
+- fact-check the claims as carefully as possible
+- estimate a credibility score from 0 to 100
+- explain whether the file appears reliable, misleading, false, or unclear
+- mention if there is not enough evidence to verify something
+- keep the response concise and structured
+
+Uploaded file name: ${req.file.originalname}
+
+Respond exactly in this format:
+
+Credibility Score: X/100
+Verdict: ...
+Summary: ...
+Reasoning: ...
+Key Claims Checked:
+- ...
+`,
+            },
+            {
+              fileData: {
+                mimeType: geminiFile.mimeType,
+                fileUri: geminiFile.uri,
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    const reply = response.text || "I could not analyze the uploaded file.";
+
+    res.json({
+      status: "success",
+      reply,
+    });
+  } catch (error) {
+    console.error("File fact-check error:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message || "File analysis failed",
+    });
+  } finally {
+    if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
+      fs.unlinkSync(uploadedFilePath);
+    }
+  }
+});
+
+// MULTER ERROR HANDLER
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    return res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+
+  if (error) {
+    return res.status(400).json({
+      status: "error",
+      message: error.message || "Upload failed",
+    });
+  }
+
+  next();
 });
 
 const PORT = process.env.PORT || 5000;

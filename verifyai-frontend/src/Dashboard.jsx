@@ -8,10 +8,12 @@ const API_URL = "http://localhost:5000";
 export default function Dashboard() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("verifyaiUser"));
+
   const [activeTab, setActiveTab] = useState("dashboard");
   const [textInput, setTextInput] = useState("");
   const [factCheckResult, setFactCheckResult] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState("");
 
   useEffect(() => {
     if (!user) navigate("/");
@@ -51,11 +53,52 @@ export default function Dashboard() {
     }
   };
 
+  const handleFileFactCheck = async (file) => {
+    if (!file) return;
+
+    setSelectedFileName(file.name);
+    setFactCheckResult("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_URL}/api/fact-check-file`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+      setFactCheckResult(response.ok ? data.reply : data.message || "File analysis failed.");
+    } catch {
+      setFactCheckResult("Could not connect to the server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const DocumentUploadBox = ({ large = false }) => (
+    <label className={`va-upload-box ${large ? "tall" : ""}`}>
+      <input
+        type="file"
+        accept=".pdf,.txt,.docx"
+        hidden
+        onChange={(e) => handleFileFactCheck(e.target.files[0])}
+      />
+      <div className="va-upload-icon">⇧</div>
+      <strong>{selectedFileName || "Upload Document"}</strong>
+      <span>PDF, TXT, DOCX {large ? "(Max 10MB)" : ""}</span>
+      {loading && <span>Analyzing file...</span>}
+    </label>
+  );
+
   return (
     <div className="va-app">
       <nav className="va-navbar">
         <div className="va-brand">
-          <div className="va-logo">盾</div>
+          <div className="va-logo">🛡</div>
           <span>VerifyAI</span>
         </div>
 
@@ -73,18 +116,18 @@ export default function Dashboard() {
         {activeTab === "dashboard" && (
           <>
             <div className="va-searchbar">
-              <input placeholder="Enter URL or text to fact-check..." value={textInput} onChange={(e) => setTextInput(e.target.value)} />
+              <input
+                placeholder="Enter URL or text to fact-check..."
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+              />
               <button onClick={handleFactCheck}>{loading ? "Checking..." : "Verify"}</button>
             </div>
 
             <div className="va-grid-2">
               <section className="va-card">
                 <h3>▣ Text Analysis</h3>
-                <div className="va-upload-box">
-                  <div className="va-upload-icon">⇧</div>
-                  <strong>Upload Document</strong>
-                  <span>PDF, TXT, DOCX</span>
-                </div>
+                <DocumentUploadBox />
 
                 <div className="va-stat-row">
                   <div><span>AI Score</span><strong className="green">2%</strong></div>
@@ -111,7 +154,7 @@ export default function Dashboard() {
 
             {factCheckResult && (
               <div className="va-card va-result">
-                <h3>Fact-Check Result</h3>
+                <h3>Analysis Result</h3>
                 <p>{factCheckResult}</p>
               </div>
             )}
@@ -136,11 +179,7 @@ export default function Dashboard() {
 
                 <div className="va-or">OR</div>
 
-                <div className="va-upload-box tall">
-                  <div className="va-upload-icon">⇧</div>
-                  <strong>Upload Document</strong>
-                  <span>PDF, TXT, DOCX (Max 10MB)</span>
-                </div>
+                <DocumentUploadBox large />
 
                 <button className="va-primary-btn" disabled={loading}>
                   {loading ? "Checking..." : "Run Fact Check"}

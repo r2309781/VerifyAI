@@ -7,3 +7,5 @@ build
 # explicitly ignore nested node_modules
 verifyai-backend/node_modules
 verifyai-frontend/node_modules
+
+uploads

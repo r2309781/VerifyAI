@@ -4,6 +4,8 @@ body {
   background-color: #0f172a;
 }
 
+/* ===== LOGIN / SIGNUP PAGE ===== */
+
 .page {
   min-height: 100vh;
   background: radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 35%),
@@ -119,266 +121,13 @@ body {
   box-sizing: border-box;
   resize: vertical;
   font-family: inherit;
+  line-height: 1.5;
 }
 
-.row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
+.text-area:focus {
+  outline: none;
+  border-color: #22d3ee;
 }
-
-.sign-in-btn {
-  padding: 14px;
-  border-radius: 16px;
-  border: none;
-  background: #22d3ee;
-  color: #082f49;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* ===== DASHBOARD UI ===== */
-
-.va-app {
-  min-height: 100vh;
-  background: #070b22;
-  color: #fff;
-}
-
-.va-navbar {
-  height: 64px;
-  background: #090d26;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-}
-
-.va-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: bold;
-}
-
-.va-logo {
-  width: 36px;
-  height: 36px;
-  background: #2f63ff;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.va-navlinks {
-  margin: 0 auto;
-  display: flex;
-  gap: 30px;
-}
-
-.va-navlinks button {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-}
-
-.va-navlinks .active {
-  color: #2f63ff;
-}
-
-.va-login-btn {
-  background: #2f63ff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
-}
-
-.va-main {
-  padding: 30px;
-}
-
-.va-searchbar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.va-searchbar input {
-  flex: 1;
-  padding: 14px;
-  border-radius: 10px;
-  border: none;
-  background: #1e293b;
-  color: white;
-}
-
-.va-searchbar button {
-  padding: 14px 20px;
-  background: #2f63ff;
-  border: none;
-  border-radius: 10px;
-  color: white;
-}
-
-.va-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.va-card {
-  background: #141a3a;
-  padding: 20px;
-  border-radius: 16px;
-}
-
-.va-upload-box {
-  border: 2px dashed #334155;
-  padding: 40px;
-  text-align: center;
-  margin: 20px 0;
-  border-radius: 12px;
-}
-
-.va-stat-row {
-  display: flex;
-  justify-content: space-between;
-}
-
-.va-score-box {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.va-textarea {
-  width: 100%;
-  padding: 16px;
-  background: #1e293b;
-  border-radius: 12px;
-  border: none;
-  color: white;
-}
-
-.va-result {
-  margin-top: 20px;
-  background: #141a3a;
-  padding: 20px;
-  border-radius: 12px;
-}
-
-.ai-fab {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  width: 60px !important;
-  height: 60px !important;
-  border: none !important;
-  border-radius: 50% !important;
-  background: #22d3ee !important;
-  color: #082f49 !important;
-  font-weight: 700 !important;
-  font-size: 18px !important;
-  cursor: pointer !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45) !important;
-  z-index: 99999 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.ai-popup {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  width: 340px !important;
-  height: 460px !important;
-  background: #0f172a !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-  z-index: 99999 !important;
-}
-
-.ai-header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  background: #1e293b !important;
-  padding: 14px 16px !important;
-  color: white !important;
-  font-weight: 600 !important;
-}
-
-.ai-close {
-  background: transparent !important;
-  color: white !important;
-  border: none !important;
-  font-size: 22px !important;
-  cursor: pointer !important;
-}
-
-.ai-messages {
-  flex: 1 !important;
-  padding: 14px !important;
-  overflow-y: auto !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 10px !important;
-  background: #020617 !important;
-}
-
-.ai-message {
-  padding: 10px 12px !important;
-  border-radius: 12px !important;
-  max-width: 85% !important;
-  line-height: 1.4 !important;
-}
-
-.user-msg {
-  align-self: flex-end !important;
-  background: #22d3ee !important;
-  color: #082f49 !important;
-}
-
-.ai-msg {
-  align-self: flex-start !important;
-  background: #1e293b !important;
-  color: white !important;
-}
-
-.ai-input-row {
-  display: flex !important;
-  gap: 8px !important;
-  padding: 12px !important;
-  background: #0f172a !important;
-}
-
-.ai-input-row input {
-  flex: 1 !important;
-  padding: 10px !important;
-  border-radius: 10px !important;
-  border: 1px solid #475569 !important;
-  background: #1e293b !important;
-  color: white !important;
-}
-
-.ai-input-row button {
-  padding: 10px 14px !important;
-  border: none !important;
-  border-radius: 10px !important;
-  background: #22d3ee !important;
-  color: #082f49 !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-}
-
-/* ===== FIX LOGIN BUTTONS ===== */
 
 .row {
   display: flex;
@@ -449,11 +198,13 @@ body {
   text-decoration: underline;
 }
 
-@media (max-width: 900px) {
-  .button-row {
-    grid-template-columns: 1fr;
-  }
+.status-message {
+  margin-top: 16px;
+  text-align: center;
+  color: #cbd5e1;
 }
+
+/* ===== DASHBOARD UI ===== */
 
 .va-app {
   min-height: 100vh;
@@ -503,7 +254,8 @@ body {
   font-size: 14px;
 }
 
-.va-navlinks button.active {
+.va-navlinks button.active,
+.va-navlinks .active {
   color: #2f63ff;
 }
 
@@ -579,10 +331,13 @@ body {
   margin-bottom: 20px;
 }
 
+/* Upload box works for both div and label */
 .va-upload-box {
   border: 2px dashed #2c3762;
   border-radius: 14px;
   padding: 44px;
+  margin: 20px 0;
+  min-height: 90px;
   text-align: center;
   color: #9aa6c4;
   display: flex;
@@ -590,12 +345,20 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin: 20px 0;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-sizing: border-box;
+}
+
+.va-upload-box:hover {
+  border-color: #2f63ff;
+  background: rgba(47, 99, 255, 0.08);
 }
 
 .va-upload-box strong {
   color: white;
   display: block;
+  font-size: 16px;
 }
 
 .va-upload-box span {
@@ -607,6 +370,7 @@ body {
 .va-upload-icon {
   font-size: 36px;
   color: #9aa6c4;
+  line-height: 1;
 }
 
 .va-upload-icon.big {
@@ -617,6 +381,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
+  margin-top: 16px;
 }
 
 .va-stat-row div {
@@ -787,7 +552,136 @@ body {
   border-radius: 999px;
 }
 
+/* ===== AI CHAT ===== */
+
+.ai-fab {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 60px !important;
+  height: 60px !important;
+  border: none !important;
+  border-radius: 50% !important;
+  background: #22d3ee !important;
+  color: #082f49 !important;
+  font-weight: 700 !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45) !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.ai-popup {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 340px !important;
+  height: 460px !important;
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  z-index: 99999 !important;
+}
+
+.ai-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  background: #1e293b !important;
+  padding: 14px 16px !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.ai-close {
+  background: transparent !important;
+  color: white !important;
+  border: none !important;
+  font-size: 22px !important;
+  cursor: pointer !important;
+}
+
+.ai-messages {
+  flex: 1 !important;
+  padding: 14px !important;
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  background: #020617 !important;
+}
+
+.ai-message {
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  max-width: 85% !important;
+  line-height: 1.4 !important;
+}
+
+.user-msg {
+  align-self: flex-end !important;
+  background: #22d3ee !important;
+  color: #082f49 !important;
+}
+
+.ai-msg {
+  align-self: flex-start !important;
+  background: #1e293b !important;
+  color: white !important;
+}
+
+.ai-input-row {
+  display: flex !important;
+  gap: 8px !important;
+  padding: 12px !important;
+  background: #0f172a !important;
+}
+
+.ai-input-row input {
+  flex: 1 !important;
+  padding: 10px !important;
+  border-radius: 10px !important;
+  border: 1px solid #475569 !important;
+  background: #1e293b !important;
+  color: white !important;
+}
+
+.ai-input-row button {
+  padding: 10px 14px !important;
+  border: none !important;
+  border-radius: 10px !important;
+  background: #22d3ee !important;
+  color: #082f49 !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+/* ===== RESPONSIVE ===== */
+
 @media (max-width: 900px) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  .left-panel {
+    display: none;
+  }
+
+  .right-panel h2 {
+    font-size: 36px;
+  }
+
+  .button-row {
+    grid-template-columns: 1fr;
+  }
+
   .va-grid-2,
   .va-stats-grid,
   .va-filter-card {
@@ -801,5 +695,9 @@ body {
 
   .va-main {
     padding: 24px 14px;
+  }
+
+  .va-navbar {
+    padding: 0 12px;
   }
 }
