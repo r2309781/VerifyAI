@@ -17,6 +17,16 @@ export default function Dashboard() {
   const [selectedFileName, setSelectedFileName] = useState("");
   const [selectedImageName, setSelectedImageName] = useState("");
 
+  const [textMetrics, setTextMetrics] = useState({
+    aiScore: 0,
+    factual: 0,
+    claims: 0,
+  });
+
+  const [imageMetrics, setImageMetrics] = useState({
+    aiLikelihood: 0,
+  });
+
   useEffect(() => {
     if (!user) navigate("/");
   }, [user, navigate]);
@@ -47,7 +57,13 @@ export default function Dashboard() {
       });
 
       const data = await response.json();
-      setFactCheckResult(response.ok ? data.reply : data.message || "Fact-check failed.");
+
+      if (response.ok) {
+        setFactCheckResult(data.reply);
+        setTextMetrics(data.metrics || { aiScore: 0, factual: 0, claims: 0 });
+      } else {
+        setFactCheckResult(data.message || "Fact-check failed.");
+      }
     } catch {
       setFactCheckResult("Could not connect to the server.");
     } finally {
@@ -73,7 +89,13 @@ export default function Dashboard() {
       });
 
       const data = await response.json();
-      setFactCheckResult(response.ok ? data.reply : data.message || "File analysis failed.");
+
+      if (response.ok) {
+        setFactCheckResult(data.reply);
+        setTextMetrics(data.metrics || { aiScore: 0, factual: 0, claims: 0 });
+      } else {
+        setFactCheckResult(data.message || "File analysis failed.");
+      }
     } catch {
       setFactCheckResult("Could not connect to the server.");
     } finally {
@@ -99,7 +121,13 @@ export default function Dashboard() {
       });
 
       const data = await response.json();
-      setImageResult(response.ok ? data.reply : data.message || "Image analysis failed.");
+
+      if (response.ok) {
+        setImageResult(data.reply);
+        setImageMetrics(data.metrics || { aiLikelihood: 0 });
+      } else {
+        setImageResult(data.message || "Image analysis failed.");
+      }
     } catch {
       setImageResult("Could not connect to the server.");
     } finally {
@@ -173,9 +201,18 @@ export default function Dashboard() {
                 <DocumentUploadBox />
 
                 <div className="va-stat-row">
-                  <div><span>AI Score</span><strong className="green">2%</strong></div>
-                  <div><span>Factual</span><strong>87%</strong></div>
-                  <div><span>Claims</span><strong>12</strong></div>
+                  <div>
+                    <span>AI Score</span>
+                    <strong className="green">{textMetrics.aiScore}%</strong>
+                  </div>
+                  <div>
+                    <span>Factual</span>
+                    <strong>{textMetrics.factual}%</strong>
+                  </div>
+                  <div>
+                    <span>Claims</span>
+                    <strong>{textMetrics.claims}</strong>
+                  </div>
                 </div>
               </section>
 
@@ -185,8 +222,10 @@ export default function Dashboard() {
 
                 <div className="va-score-box">
                   <span>AI Image Detection</span>
-                  <strong>{imageResult ? "Done" : "—"}</strong>
-                  <p>{imageResult ? "Analysis complete" : "Upload an image"}</p>
+                  <strong>
+                    {imageResult ? `${imageMetrics.aiLikelihood}%` : "—"}
+                  </strong>
+                  <p>{imageResult ? "AI generation likelihood" : "Upload an image"}</p>
                 </div>
               </section>
             </div>

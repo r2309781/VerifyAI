@@ -16,7 +16,29 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-// DOCUMENT UPLOAD CONFIG
+function extractTextMetrics(reply) {
+  const credibilityMatch = reply.match(/Credibility Score:\s*(\d+)\/100/i);
+  const factual = credibilityMatch ? Number(credibilityMatch[1]) : 0;
+
+  const claimsSection = reply.split(/Key Claims Checked:/i)[1] || "";
+  const claims = (claimsSection.match(/^- /gm) || []).length;
+
+  return {
+    aiScore: Math.max(0, 100 - factual),
+    factual,
+    claims: claims || 0,
+  };
+}
+
+function extractImageMetrics(reply) {
+  const likelihoodMatch = reply.match(/AI Generation Likelihood:\s*(\d+)\/100/i);
+  const aiLikelihood = likelihoodMatch ? Number(likelihoodMatch[1]) : 0;
+
+  return {
+    aiLikelihood,
+  };
+}
+
 const documentUpload = multer({
   dest: "uploads/",
   limits: {
@@ -37,7 +59,6 @@ const documentUpload = multer({
   },
 });
 
-// IMAGE UPLOAD CONFIG
 const imageUpload = multer({
   dest: "uploads/",
   limits: {
@@ -54,7 +75,6 @@ const imageUpload = multer({
   },
 });
 
-// Test route
 app.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -68,7 +88,6 @@ app.get("/", async (req, res) => {
   }
 });
 
-// REGISTER
 app.post("/api/register", async (req, res) => {
   try {
     const { full_name, email, password } = req.body;
@@ -80,10 +99,7 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    const existing = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [email]
-    );
+    const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
 
     if (existing.rows.length > 0) {
       return res.status(409).json({
@@ -115,7 +131,6 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// LOGIN
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -127,10 +142,7 @@ app.post("/api/login", async (req, res) => {
       });
     }
 
-    const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [email]
-    );
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
 
     if (result.rows.length === 0) {
       return res.status(401).json({
@@ -140,7 +152,6 @@ app.post("/api/login", async (req, res) => {
     }
 
     const user = result.rows[0];
-
     const match = await bcrypt.compare(password, user.password_hash);
 
     if (!match) {
@@ -168,7 +179,6 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// AI CHAT
 app.post("/api/ai-chat", async (req, res) => {
   try {
     const { message } = req.body;
@@ -211,7 +221,6 @@ app.post("/api/ai-chat", async (req, res) => {
   }
 });
 
-// FACT CHECK TEXT
 app.post("/api/fact-check-text", async (req, res) => {
   try {
     const { text } = req.body;
@@ -236,6 +245,7 @@ You are VerifyAI Assistant.
 Your task:
 - fact-check the user-provided text
 - estimate a credibility score from 0 to 100
+- estimate how many distinct factual claims are being checked
 - explain whether the claim appears reliable, misleading, false, or unclear
 - keep the response concise and structured
 
@@ -248,6 +258,8 @@ Credibility Score: X/100
 Verdict: ...
 Summary: ...
 Reasoning: ...
+Key Claims Checked:
+- ...
 `,
             },
           ],
@@ -255,12 +267,12 @@ Reasoning: ...
       ],
     });
 
-    const reply =
-      response.text || "I could not generate a fact-check response.";
+    const reply = response.text || "I could not generate a fact-check response.";
 
     res.json({
       status: "success",
       reply,
+      metrics: extractTextMetrics(reply),
     });
   } catch (error) {
     console.error("Fact check text error:", error);
@@ -271,7 +283,6 @@ Reasoning: ...
   }
 });
 
-// FACT CHECK UPLOADED FILE
 app.post("/api/fact-check-file", documentUpload.single("file"), async (req, res) => {
   let uploadedFilePath;
 
@@ -341,6 +352,7 @@ Key Claims Checked:
     res.json({
       status: "success",
       reply,
+      metrics: extractTextMetrics(reply),
     });
   } catch (error) {
     console.error("File fact-check error:", error);
@@ -355,7 +367,6 @@ Key Claims Checked:
   }
 });
 
-// ANALYZE IMAGE FOR POSSIBLE AI GENERATION
 app.post("/api/analyze-image", imageUpload.single("image"), async (req, res) => {
   let uploadedImagePath;
 
@@ -423,6 +434,7 @@ Limitations: ...
     res.json({
       status: "success",
       reply,
+      metrics: extractImageMetrics(reply),
     });
   } catch (error) {
     console.error("Image analysis error:", error);
@@ -437,7 +449,6 @@ Limitations: ...
   }
 });
 
-// MULTER ERROR HANDLER
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     return res.status(400).json({
