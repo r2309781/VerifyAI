@@ -75,17 +75,12 @@ const imageUpload = multer({
   },
 });
 
-app.get("/", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT NOW()");
-    res.json({
-      message: "Backend running",
-      time: result.rows[0],
-    });
-  } catch (error) {
-    console.error("DB error:", error);
-    res.status(500).json({ error: "DB error" });
-  }
+// Test route - does NOT require database
+app.get("/", (req, res) => {
+  res.json({
+    message: "Backend running",
+    environment: process.env.NODE_ENV || "local",
+  });
 });
 
 app.post("/api/register", async (req, res) => {
@@ -99,7 +94,9 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const existing = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
 
     if (existing.rows.length > 0) {
       return res.status(409).json({
@@ -142,7 +139,9 @@ app.post("/api/login", async (req, res) => {
       });
     }
 
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
 
     if (result.rows.length === 0) {
       return res.status(401).json({
