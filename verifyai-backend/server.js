@@ -3,7 +3,6 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const fs = require("fs");
-const path = require("path");
 const { GoogleGenAI } = require("@google/genai");
 const pool = require("./db");
 require("dotenv").config();
@@ -17,8 +16,8 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-// FILE UPLOAD CONFIG
-const upload = multer({
+// DOCUMENT UPLOAD CONFIG
+const documentUpload = multer({
   dest: "uploads/",
   limits: {
     fileSize: 10 * 1024 * 1024,
@@ -34,6 +33,23 @@ const upload = multer({
       cb(null, true);
     } else {
       cb(new Error("Only PDF, TXT, and DOCX files are allowed"));
+    }
+  },
+});
+
+// IMAGE UPLOAD CONFIG
+const imageUpload = multer({
+  dest: "uploads/",
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only JPG, PNG, and WEBP images are allowed"));
     }
   },
 });
@@ -256,7 +272,7 @@ Reasoning: ...
 });
 
 // FACT CHECK UPLOADED FILE
-app.post("/api/fact-check-file", upload.single("file"), async (req, res) => {
+app.post("/api/fact-check-file", documentUpload.single("file"), async (req, res) => {
   let uploadedFilePath;
 
   try {
@@ -335,6 +351,88 @@ Key Claims Checked:
   } finally {
     if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
       fs.unlinkSync(uploadedFilePath);
+    }
+  }
+});
+
+// ANALYZE IMAGE FOR POSSIBLE AI GENERATION
+app.post("/api/analyze-image", imageUpload.single("image"), async (req, res) => {
+  let uploadedImagePath;
+
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        status: "error",
+        message: "Image is required",
+      });
+    }
+
+    uploadedImagePath = req.file.path;
+
+    const geminiImage = await ai.files.upload({
+      file: uploadedImagePath,
+      config: {
+        mimeType: req.file.mimetype,
+        displayName: req.file.originalname,
+      },
+    });
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `
+You are VerifyAI Image Forensics Assistant.
+
+Analyze the uploaded image and make your best effort to determine whether it may be AI-generated, edited, manipulated, or likely authentic.
+
+Important:
+- Do not claim certainty.
+- Be honest about uncertainty.
+- Base your answer only on visible visual clues.
+- Mention that AI-image detection is not perfect.
+- Keep the response concise and structured.
+
+Uploaded image name: ${req.file.originalname}
+
+Respond exactly in this format:
+
+AI Generation Likelihood: X/100
+Verdict: ...
+Visual Clues: ...
+Reasoning: ...
+Limitations: ...
+`,
+            },
+            {
+              fileData: {
+                mimeType: geminiImage.mimeType,
+                fileUri: geminiImage.uri,
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    const reply = response.text || "I could not analyze the uploaded image.";
+
+    res.json({
+      status: "success",
+      reply,
+    });
+  } catch (error) {
+    console.error("Image analysis error:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message || "Image analysis failed",
+    });
+  } finally {
+    if (uploadedImagePath && fs.existsSync(uploadedImagePath)) {
+      fs.unlinkSync(uploadedImagePath);
     }
   }
 });

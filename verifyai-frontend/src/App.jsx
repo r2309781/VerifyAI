@@ -2,12 +2,28 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./App.css";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function App() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleGuestLogin = () => {
+    localStorage.setItem(
+      "verifyaiUser",
+      JSON.stringify({
+        user_id: "guest",
+        full_name: "Guest User",
+        email: "guest@verifyai.demo",
+        isGuest: true
+      })
+    );
+
+    navigate("/dashboard");
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,7 +37,7 @@ export default function App() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/login", {
+      const response = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -115,8 +131,12 @@ export default function App() {
           <div className="divider">or</div>
 
           <div className="button-row">
-            <button type="button" className="alt-btn">Continue with Google</button>
-            <button type="button" className="alt-btn">Continue as Guest</button>
+            <button type="button" className="alt-btn">
+              Continue with Google
+            </button>
+            <button type="button" className="alt-btn" onClick={handleGuestLogin}>
+              Continue as Guest
+            </button>
           </div>
 
           <p className="footer-text">

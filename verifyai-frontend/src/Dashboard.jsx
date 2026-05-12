@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import AIAgent from "./AIAgent";
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -12,8 +12,10 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [textInput, setTextInput] = useState("");
   const [factCheckResult, setFactCheckResult] = useState("");
+  const [imageResult, setImageResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
+  const [selectedImageName, setSelectedImageName] = useState("");
 
   useEffect(() => {
     if (!user) navigate("/");
@@ -79,6 +81,32 @@ export default function Dashboard() {
     }
   };
 
+  const handleImageAnalysis = async (image) => {
+    if (!image) return;
+
+    setSelectedImageName(image.name);
+    setImageResult("");
+
+    const formData = new FormData();
+    formData.append("image", image);
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_URL}/api/analyze-image`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+      setImageResult(response.ok ? data.reply : data.message || "Image analysis failed.");
+    } catch {
+      setImageResult("Could not connect to the server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const DocumentUploadBox = ({ large = false }) => (
     <label className={`va-upload-box ${large ? "tall" : ""}`}>
       <input
@@ -90,7 +118,22 @@ export default function Dashboard() {
       <div className="va-upload-icon">⇧</div>
       <strong>{selectedFileName || "Upload Document"}</strong>
       <span>PDF, TXT, DOCX {large ? "(Max 10MB)" : ""}</span>
-      {loading && <span>Analyzing file...</span>}
+      {loading && <span>Analyzing...</span>}
+    </label>
+  );
+
+  const ImageUploadBox = ({ large = false }) => (
+    <label className={`va-upload-box ${large ? "image-upload" : ""}`}>
+      <input
+        type="file"
+        accept=".jpg,.jpeg,.png,.webp"
+        hidden
+        onChange={(e) => handleImageAnalysis(e.target.files[0])}
+      />
+      <div className={`va-upload-icon ${large ? "big" : ""}`}>⇧</div>
+      <strong>{selectedImageName || (large ? "Drop image here or click to upload" : "Upload Image")}</strong>
+      <span>JPG, PNG, WEBP {large ? "(Max 10MB)" : ""}</span>
+      {loading && <span>Analyzing image...</span>}
     </label>
   );
 
@@ -138,24 +181,27 @@ export default function Dashboard() {
 
               <section className="va-card">
                 <h3>▧ Image Forensics</h3>
-                <div className="va-upload-box">
-                  <div className="va-upload-icon">⇧</div>
-                  <strong>Upload Image</strong>
-                  <span>JPG, PNG, WEBP</span>
-                </div>
+                <ImageUploadBox />
 
                 <div className="va-score-box">
-                  <span>Credibility Score</span>
-                  <strong>92</strong>
-                  <p>Likely Real</p>
+                  <span>AI Image Detection</span>
+                  <strong>{imageResult ? "Done" : "—"}</strong>
+                  <p>{imageResult ? "Analysis complete" : "Upload an image"}</p>
                 </div>
               </section>
             </div>
 
             {factCheckResult && (
               <div className="va-card va-result">
-                <h3>Analysis Result</h3>
+                <h3>Document/Text Analysis Result</h3>
                 <p>{factCheckResult}</p>
+              </div>
+            )}
+
+            {imageResult && (
+              <div className="va-card va-result">
+                <h3>Image Analysis Result</h3>
+                <p>{imageResult}</p>
               </div>
             )}
           </>
@@ -199,16 +245,19 @@ export default function Dashboard() {
         {activeTab === "image" && (
           <section>
             <h1>Image Forensics</h1>
-            <p className="va-muted">Detect manipulated images using advanced forensic analysis</p>
+            <p className="va-muted">Detect possible AI-generated or manipulated images using best-effort AI analysis</p>
 
             <div className="va-card va-large-card">
               <h3>▧ Upload Image</h3>
-              <div className="va-upload-box image-upload">
-                <div className="va-upload-icon big">⇧</div>
-                <strong>Drop image here or click to upload</strong>
-                <span>JPG, PNG, WEBP, GIF (Max 25MB)</span>
-              </div>
+              <ImageUploadBox large />
             </div>
+
+            {imageResult && (
+              <div className="va-card va-result">
+                <h3>Image Analysis Result</h3>
+                <p>{imageResult}</p>
+              </div>
+            )}
           </section>
         )}
 
