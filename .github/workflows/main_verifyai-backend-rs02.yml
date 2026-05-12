@@ -1,3 +1,4 @@
+#Trigger deployment
 name: Build and deploy Node.js app to Azure Web App - verifyai-backend-rs02
 
 on:
