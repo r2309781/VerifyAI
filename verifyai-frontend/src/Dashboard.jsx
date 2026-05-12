@@ -223,7 +223,7 @@ export default function Dashboard() {
                   onChange={(e) => setTextInput(e.target.value)}
                 />
 
-                <div className="va-or">OR</div>
+                <div className="va-or"></div>
 
                 <DocumentUploadBox large />
 
