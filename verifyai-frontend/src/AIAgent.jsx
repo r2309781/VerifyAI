@@ -1,15 +1,20 @@
 import { useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function AIAgent() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
-    { sender: "ai", text: "Hi! I’m your VerifyAI assistant. Ask me about fact-checking, URLs, or credibility." }
+    {
+      sender: "ai",
+      text: "Hi! I’m your VerifyAI assistant. Ask me about fact-checking, URLs, or credibility."
+    }
   ]);
   const [loading, setLoading] = useState(false);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
 
     const userMessage = { sender: "user", text: input };
     setMessages((prev) => [...prev, userMessage]);
@@ -17,7 +22,7 @@ export default function AIAgent() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/ai-chat", {
+      const response = await fetch(`${API_URL}/api/ai-chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -28,10 +33,7 @@ export default function AIAgent() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessages((prev) => [
-          ...prev,
-          { sender: "ai", text: data.reply }
-        ]);
+        setMessages((prev) => [...prev, { sender: "ai", text: data.reply }]);
       } else {
         setMessages((prev) => [
           ...prev,
@@ -69,7 +71,9 @@ export default function AIAgent() {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`ai-message ${msg.sender === "user" ? "user-msg" : "ai-msg"}`}
+                className={`ai-message ${
+                  msg.sender === "user" ? "user-msg" : "ai-msg"
+                }`}
               >
                 {msg.text}
               </div>
